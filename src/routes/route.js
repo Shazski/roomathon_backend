@@ -1,5 +1,6 @@
 const express = require('express');
 const { sendEmail } = require('../service/mail.service');
+const { generateReport } = require('../service/report.service');
 
 const router = express.Router();
 
@@ -14,6 +15,22 @@ router.post('/send-email', async (req, res) => {
     } catch (error) {
         res.status(500).send({
             message: error.message || "Failed to send email",
+            status: 500
+        });
+    }
+});
+
+router.get('/start-report/:id', async (req, res) => {
+    const {id} = req.params;
+    try {
+        await generateReport(id);
+        res.status(200).send({
+            message: "Reported generation successfully",
+            status: 200
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: error.message || "Failed to generate report",
             status: 500
         });
     }
