@@ -8,11 +8,13 @@ const {
   collection,
   getDocs,
   sum,
+  updateDoc
 } = require("firebase/firestore");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
-const { sendEmail } = require("./mail.service")
+const { sendEmailWithAttachment } = require("./mail.service");
+const { cloudinary } = require('../utils/cloudinary');
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -131,7 +133,23 @@ const generateReport = async (inspectionId) => {
 
     docPdf.end();
 
-    await sendEmail({
+    const uploadResult = await cloudinary.uploader.upload(pdfPath, {
+        resource_type: "raw",
+        folder: "inspection_reports",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+    });
+    const pdfUrl = uploadResult.secure_url;
+    const inspectionDocRef = doc(db, "houseInspections", inspectionId);
+
+    await updateDoc(inspectionDocRef, {
+        reportUrl: pdfUrl,
+        status: "completed",
+        reportGeneratedAt: new Date(),
+    });
+
+    const sendmail = await sendEmailWithAttachment({
       email: inspectionData.email, // e.g. aravindhan@skills-agency.com
       subject: `Inspection Report for ${inspectionData.name}`,
       emailContent: `Hello ${inspectionData.name},\n\nHere is your inspection report. Please find attached the inspection report.\n\nThank you.`,
