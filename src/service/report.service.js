@@ -31,7 +31,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const generateReport = async (inspectionId) => {
+const generateReport = async (inspectionId, senderEmail) => {
   try {
     console.log(process.env.FIREBASE_API_KEY)
     const docRef = doc(db, "houseInspections", inspectionId);
@@ -149,17 +149,21 @@ const generateReport = async (inspectionId) => {
         reportGeneratedAt: new Date(),
     });
 
-    const sendmail = await sendEmailWithAttachment({
-      email: inspectionData.email, // e.g. aravindhan@skills-agency.com
-      subject: `Inspection Report for ${inspectionData.name}`,
-      emailContent: `Hello ${inspectionData.name},\n\nHere is your inspection report. Please find attached the inspection report.\n\nThank you.`,
-      attachments: [
-        {
-          filename: path.basename(pdfPath),
-          path: pdfPath,
-          contentType: "application/pdf",
-        },
-      ],
+    await sendEmailWithAttachment({
+        email: senderEmail ? [inspectionData.email, senderEmail] : inspectionData.email, // e.g. aravindhan@skills-agency.com
+        subject: `Inspection Report for ${inspectionData.name}`,
+        emailContent: `
+            <p>Hello  ${inspectionData.name},</p>
+            <p>Here is your inspection report. Please find attached the inspection report.</p>
+            <p>Thank you.</p>
+        `,
+        attachments: [
+            {
+            filename: path.basename(pdfPath),
+            path: pdfPath,
+            contentType: "application/pdf",
+            },
+        ],
     });
     return pdfPath;
   } catch (err) {

@@ -22,8 +22,9 @@ router.post('/send-email', async (req, res) => {
 
 router.get('/start-report/:id', async (req, res) => {
     const {id} = req.params;
+    const senderEmail = req.headers['x-user-email'] ?? '';
     try {
-        await generateReport(id);
+        await generateReport(id, senderEmail);
         res.status(200).send({
             message: "Reported generation successfully",
             status: 200
