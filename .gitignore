@@ -4,6 +4,10 @@ node_modules/
 # Environment variables
 .env
 
+# pdf reports
+*.pdf
+reports/
+
 # Optional: Ignore build or temp files
 dist/
 build/
@@ -15,3 +19,7 @@ tmp/
 
 # Mac system files
 Icon?
+
+# Lock files
+package-lock.json
+yarn.lock
